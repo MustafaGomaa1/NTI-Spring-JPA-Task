@@ -26,4 +26,14 @@ public class Product extends Base {
     @ManyToMany
     @JoinTable(name = "product_Category", joinColumns = @JoinColumn(name = "product_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
     private Set<Category> categories;
+
+    @Override
+    public int hashCode() {
+        return Integer.valueOf(sku).hashCode();
+    }
+
+    @Override
+    public boolean equals(Product product) {
+        return this.sku.equals(product.getSku());
+    }
 }

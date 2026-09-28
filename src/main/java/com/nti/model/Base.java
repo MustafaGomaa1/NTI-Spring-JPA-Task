@@ -30,4 +30,8 @@ public abstract class Base {
 
     @Version
     private int version;
+
+    public boolean equals(Product product) {
+        throw new UnsupportedOperationException("Unimplemented method 'equals'");
+    }
 }
