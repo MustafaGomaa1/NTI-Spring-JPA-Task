@@ -29,7 +29,7 @@ public class Product extends Base {
 
     @Override
     public int hashCode() {
-        return Integer.valueOf(sku).hashCode();
+        return (sku).hashCode();
     }
 
     @Override
