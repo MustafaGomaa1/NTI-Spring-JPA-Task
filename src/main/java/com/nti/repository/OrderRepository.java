@@ -16,18 +16,18 @@ public class OrderRepository {
     private EntityManager em;
 
     public void save(Order order) {
-        if(em.find(Order.class,order.getId())==null)
+        if (order.getId() == 0)
             em.persist(order);
         else
             em.merge(order);
     }
 
     public List<Order> findAll() {
-        return em.createNamedQuery("Order.findAll", Order.class).getResultList();
+        return em.createQuery("SELECT o FROM Order o ORDER BY o.id", Order.class).getResultList();
     }
 
     public Optional<Order> findById(int id) {
-        return Optional.of(em.find(Order.class, id));
+        return Optional.ofNullable(em.find(Order.class, id));
     }
 
     public Order findByIdWithItems(int id) {
@@ -39,6 +39,6 @@ public class OrderRepository {
     }
 
     public List<Order> findByStatus(Status status) {
-        return em.createQuery("SELECT o FROM Order o WHERE o.status = :status",Order.class).setParameter("status",status.toString()).getResultList();
+        return em.createQuery("SELECT o FROM Order o WHERE o.status = :status",Order.class).setParameter("status",status).getResultList();
     }
 }

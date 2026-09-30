@@ -2,6 +2,7 @@ package com.nti.model;
 
 import java.math.BigDecimal;
 import java.util.Set;
+import java.util.Objects;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -29,11 +30,17 @@ public class Product extends Base {
 
     @Override
     public int hashCode() {
-        return (sku).hashCode();
+        return Objects.hashCode(sku);
     }
 
     @Override
-    public boolean equals(Product product) {
-        return this.sku.equals(product.getSku());
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof Product product)) {
+            return false;
+        }
+        return sku != null && sku.equals(product.sku);
     }
 }

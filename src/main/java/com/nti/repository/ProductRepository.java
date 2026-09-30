@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.nti.model.Order;
 import org.springframework.stereotype.Repository;
 
 import com.nti.model.Category;
@@ -34,12 +33,16 @@ public class ProductRepository {
     }
 
     public Optional<Product> findById(Number id) {
-        return Optional.of(entityManager.find(Product.class, id));
+        return Optional.ofNullable(entityManager.find(Product.class, id));
     }
 
     public Product findBySku(String sku) {
-        return entityManager.createQuery("SELECT p FROM Product p WHERE p.sku =: sku", Product.class)
+        return entityManager.createQuery("SELECT p FROM Product p WHERE p.sku = :sku", Product.class)
                 .setParameter("sku", sku).getSingleResult();
+    }
+
+    public List<Product> findAll() {
+        return entityManager.createQuery("SELECT p FROM Product p ORDER BY p.id", Product.class).getResultList();
     }
 
     public List<Product> search(String keyword, BigDecimal minPrice, BigDecimal maxPrice, String category) {
@@ -58,8 +61,8 @@ public class ProductRepository {
             predicates.add(cb.lessThanOrEqualTo(product.get("price"), maxPrice));
         }
         if (category != null && !category.isBlank()) {
-            Join<Product, Category> join = product.join("category", JoinType.INNER);
-            predicates.add(cb.equal(join.get("category"), category));
+            Join<Product, Category> join = product.join("categories", JoinType.INNER);
+            predicates.add(cb.equal(join.get("name"), category));
         }
 
         cq.select(product).where(predicates.toArray(new Predicate[0]));
@@ -67,10 +70,17 @@ public class ProductRepository {
     }
 
     public List<Product> findLowStock(int threshold) {
-        return entityManager.createQuery("SELECT p FROM Product p ORDER BY p.stock DESC LIMIT :threshold ").setParameter("threshold",threshold).setMaxResults(threshold).getResultList();
+        return entityManager.createQuery("SELECT p FROM Product p WHERE p.stock <= :threshold ORDER BY p.stock", Product.class)
+                .setParameter("threshold", threshold).getResultList();
     }
 
     public List<Product> findPage(int pageNumber, int pageSize) {
-        return entityManager.createQuery("SELECT p FROM Product p ORDER BY p.createAt OFFSET :pageNumber LIMIT :pageSize").setParameter("pageNumber",pageNumber).setParameter("pageSize",pageSize).setParameter("pageNumber",(pageNumber-1)*pageSize).getResultList();
+        if (pageNumber < 1 || pageSize < 1) {
+            throw new IllegalArgumentException("Page number and page size must be positive");
+        }
+        return entityManager.createQuery("SELECT p FROM Product p ORDER BY p.createAt, p.id", Product.class)
+                .setFirstResult((pageNumber - 1) * pageSize)
+                .setMaxResults(pageSize)
+                .getResultList();
     }
 }

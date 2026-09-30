@@ -17,21 +17,23 @@ public class CustomerRepository {
     private EntityManager entityManager;
 
     public void save(Customer customer) {
-        if (entityManager.find(Customer.class, customer.getId()) == null) {
+        if (customer.getId() == 0) {
             entityManager.persist(customer);
+        } else {
+            entityManager.merge(customer);
         }
-        entityManager.merge(customer);
     }
 
-    public Optional<Customer> findById(Number id) {
+    public Optional<Customer> findById(int id) {
         Customer customer = entityManager.find(Customer.class, id);
-        return Optional.of(customer);
+        return Optional.ofNullable(customer);
     }
 
     public Optional<Customer> findByEmail(String email) {
-        Customer customer = entityManager.createQuery("SELECT c From Customer c WHERE c.email =:email", Customer.class)
-                .setParameter("email", email).getSingleResult();
-        return Optional.of(customer);
+        return entityManager.createQuery("SELECT c FROM Customer c WHERE c.email = :email", Customer.class)
+                .setParameter("email", email)
+                .getResultStream()
+                .findFirst();
     }
 
     public List<Customer> findAll() {

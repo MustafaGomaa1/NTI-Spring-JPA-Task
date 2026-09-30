@@ -26,9 +26,10 @@ public class AppConfig {
     public DataSource dataSource() {
         var ds = new DriverManagerDataSource();
         ds.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        ds.setUrl("jdbc:mysql://localhost:3306/shop?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true");
-        ds.setUsername("root");
-        ds.setPassword("password");
+        ds.setUrl(setting("DB_URL", "db.url",
+                "jdbc:mysql://localhost:3306/shop?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"));
+        ds.setUsername(setting("DB_USERNAME", "db.username", "root"));
+        ds.setPassword(setting("DB_PASSWORD", "db.password", ""));
         return ds;
     }
 
@@ -39,10 +40,19 @@ public class AppConfig {
         emf.setPackagesToScan("com.nti");
         emf.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
         Properties p = new Properties();
-        p.put("hibernate.hbm2ddl.auto", "create-drop");
-        p.put("hibernate.show_sql", "true");
+        p.put("hibernate.hbm2ddl.auto", setting("HIBERNATE_DDL_AUTO", "hibernate.ddl-auto", "update"));
+        p.put("hibernate.show_sql", setting("HIBERNATE_SHOW_SQL", "hibernate.show-sql", "false"));
         emf.setJpaProperties(p);
         return emf;
+    }
+
+    private String setting(String environmentVariable, String systemProperty, String defaultValue) {
+        String property = System.getProperty(systemProperty);
+        if (property != null && !property.isBlank()) {
+            return property;
+        }
+        String environment = System.getenv(environmentVariable);
+        return environment == null || environment.isBlank() ? defaultValue : environment;
     }
 
     @Bean

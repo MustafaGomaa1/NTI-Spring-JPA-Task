@@ -1,14 +1,15 @@
 package com.nti.service;
 
-import com.nti.exception.CustomerException;
 import com.nti.exception.DuplicateCustomerException;
 import com.nti.model.Customer;
 import com.nti.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-@Setter
+@Service
 @RequiredArgsConstructor
+@Transactional
 public class CustomerService {
     private final CustomerRepository customerRepository;
 

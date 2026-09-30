@@ -26,11 +26,17 @@ public class OrderService {
 
 
     @Transactional
-    public void placeOrder(int customerId, Map<Long,Integer> productQuantity){
+    public int placeOrder(int customerId, Map<Integer,Integer> productQuantity){
+        if (productQuantity == null || productQuantity.isEmpty()) {
+            throw new IllegalArgumentException("An order must contain at least one product");
+        }
         Order order = new Order();
         Customer customer = customerRepository.findById(customerId).orElseThrow(()->new CustomerException("Customer Not Found"));
         List<OrderItem> orderProducts = new ArrayList<>();
-        for (Map.Entry<Long,Integer> entry : productQuantity.entrySet()){
+        for (Map.Entry<Integer,Integer> entry : productQuantity.entrySet()){
+            if (entry.getValue() == null || entry.getValue() <= 0) {
+                throw new IllegalArgumentException("Order quantities must be positive");
+            }
             Product product = productRepository.findById(entry.getKey()).orElseThrow(()->new ProductException("Product Not Found"));
             if(product.getStock()<entry.getValue()){
                 throw new InsufficientStockException("Insufficient Stock");
@@ -49,18 +55,31 @@ public class OrderService {
         order.setStatus(Status.NEW);
         order.setOrderAt(LocalDateTime.now());
         orderRepository.save(order);
+        return order.getId();
     }
 
+    @Transactional
     public void pay(int orderId,Payment payment){
         Order order = orderRepository.findById(orderId).orElseThrow(()->new OrderException("Order Not Found"));
         if(!order.getStatus().equals(Status.NEW)){
             throw new InvalidOrderStateException("Order Status Not New");
         }
+        if (payment.getAmount() == null || payment.getAmount().signum() <= 0 || payment.getMethod() == null) {
+            throw new IllegalArgumentException("Payment amount and method are required");
+        }
+        BigDecimal orderTotal = order.getItems().stream()
+                .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (payment.getAmount().compareTo(orderTotal) != 0) {
+            throw new IllegalArgumentException("Payment amount must match the order total of " + orderTotal);
+        }
+        payment.setOrder(order);
+        payment.setPayedAt(LocalDateTime.now());
         order.setPayment(payment);
         order.setStatus(Status.PAID);
-//        orderRepository.save(order);
     }
 
+    @Transactional
     public void ship(int orderId){
         Order order = orderRepository.findById(orderId).orElseThrow(()->new OrderException("Order Not Found"));
         if(!order.getStatus().equals(Status.PAID)){
@@ -88,11 +107,10 @@ public class OrderService {
     @Transactional(readOnly = true)
     public OrderSummeryDTO getOrderSummery(int orderId){
         Order order = orderRepository.findById(orderId).orElseThrow(()->new OrderException("Order Not Found"));
-        BigDecimal totalPrice = new BigDecimal(0);
+        BigDecimal totalPrice = BigDecimal.ZERO;
         for (OrderItem orderItem : order.getItems()) {
-            BigDecimal unitTotalPrice = new BigDecimal(0);
-            unitTotalPrice =(orderItem.getUnitPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity())));
-            totalPrice.add(unitTotalPrice);
+            BigDecimal unitTotalPrice = orderItem.getUnitPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity()));
+            totalPrice = totalPrice.add(unitTotalPrice);
         }
         return OrderSummeryDTO.builder()
                 .order(order)

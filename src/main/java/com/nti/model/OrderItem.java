@@ -20,9 +20,11 @@ import lombok.Setter;
 
 public class OrderItem extends Base{
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "order")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
     private Order order;
+    @ManyToOne
+    @JoinColumn(name = "product_id")
     private Product product;
     private int quantity;
     private BigDecimal unitPrice;
