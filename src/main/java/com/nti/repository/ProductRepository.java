@@ -63,4 +63,12 @@ public class ProductRepository {
         cq.select(product).where(predicates.toArray(new Predicate[0]));
         return entityManager.createQuery(cq).getResultList();
     }
+
+    public List<Product> findLowStock(int threshold) {
+        return entityManager.createQuery("SELECT p FROM Product p ORDER BY p.stock DESC LIMIT :threshold ").setParameter("threshold",threshold).setMaxResults(threshold).getResultList();
+    }
+
+    public List<Product> findPage(int pageNumber, int pageSize) {
+        return entityManager.createQuery("SELECT p FROM Product p ORDER BY p.createAt OFFSET :pageNumber LIMIT :pageSize").setParameter("pageNumber",pageNumber).setParameter("pageSize",pageSize).setParameter("pageNumber",pageNumber-1*pageSize).getResultList();
+    }
 }
