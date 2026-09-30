@@ -7,6 +7,7 @@ import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class OrderRepository {
@@ -25,8 +26,8 @@ public class OrderRepository {
         return em.createNamedQuery("Order.findAll", Order.class).getResultList();
     }
 
-    public Order findById(int id) {
-        return em.find(Order.class, id);
+    public Optional<Order> findById(int id) {
+        return Optional.of(em.find(Order.class, id));
     }
 
     public Order findByIdWithItems(int id) {

@@ -3,6 +3,7 @@ package com.nti.repository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.nti.model.Order;
 import org.springframework.stereotype.Repository;
@@ -32,8 +33,8 @@ public class ProductRepository {
             entityManager.merge(product);
     }
 
-    public Product findById(Number id) {
-        return entityManager.find(Product.class, id);
+    public Optional<Product> findById(Number id) {
+        return Optional.of(entityManager.find(Product.class, id));
     }
 
     public Product findBySku(String sku) {
