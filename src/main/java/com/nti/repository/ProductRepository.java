@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.nti.model.Order;
 import org.springframework.stereotype.Repository;
 
 import com.nti.model.Category;
@@ -69,6 +70,6 @@ public class ProductRepository {
     }
 
     public List<Product> findPage(int pageNumber, int pageSize) {
-        return entityManager.createQuery("SELECT p FROM Product p ORDER BY p.createAt OFFSET :pageNumber LIMIT :pageSize").setParameter("pageNumber",pageNumber).setParameter("pageSize",pageSize).setParameter("pageNumber",pageNumber-1*pageSize).getResultList();
+        return entityManager.createQuery("SELECT p FROM Product p ORDER BY p.createAt OFFSET :pageNumber LIMIT :pageSize").setParameter("pageNumber",pageNumber).setParameter("pageSize",pageSize).setParameter("pageNumber",(pageNumber-1)*pageSize).getResultList();
     }
 }

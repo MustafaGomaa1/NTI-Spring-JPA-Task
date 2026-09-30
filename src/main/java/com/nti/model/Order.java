@@ -20,7 +20,7 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Order {
+public class Order extends Base{
     private Customer customer;
     @Enumerated(EnumType.STRING)
     private Status status;
